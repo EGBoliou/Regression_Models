@@ -87,6 +87,21 @@ for (i in 1 : n)
 mtext("Residual Plots1", outer = TRUE)
 ```
 
+####Better Residual Plots
+#####Standard Linear Model
+
+```{r, echo=FALSE, fig.align="center"}
+par(mfrow= c(2,2))
+plot(CR)
+```
+
+#####Poisson GLM
+
+```{r, echo=FALSE, fig.align="center"}
+par(mfrow= c(2,2))
+plot(glm1)
+```
+
 ###Confidence Intervals
 ```{r, warning=FALSE}
 confint(CR)
