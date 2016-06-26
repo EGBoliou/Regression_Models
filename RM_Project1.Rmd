@@ -1,0 +1,96 @@
+---
+title: "MPG Per Transmission"
+author: "EGB"
+date: "June 26, 2016"
+output: html_document
+---
+
+The following analysis looks into the affect of miles per gallon (MPG) based on type of transmission.  We look at the **mtcars** dataset and compare the impact on MPG from a manual transmission versus an automatic one.  By doing the analysis below, we find that on average a *MANUAL* transmission will give you a higher MPG rate.
+
+###Getting Data
+
+```{r}
+library(datasets)
+data("mtcars")
+```
+
+###Exploratory Data Analysis
+
+```{r}
+str(mtcars)
+head(mtcars)
+```
+
+###Standard Linear Model (LM)
+
+```{r}
+CR <- lm(mpg ~ am, data = mtcars)
+summary(CR)
+```
+
+We see that transmission is very significant in determining MPG. If you have an automatic transmission, your average MPG is 17.147 while a manual transmission your average is +7.245 more making it 24.392 MPG.
+
+```{r, echo=FALSE}
+plot(mtcars$am,mtcars$mpg,pch=19,col="blue",xlab="Transmission: 0-Automatic, 1-Manual", ylab="MPG", main = "Fit with \
+Standard LM")
+abline(CR, col = "red", lwd = 3)
+```
+
+From the plot, we have further support that manual transmissions tend to have higher MPG's.  
+
+###Poisson General Linear Model (GLM)
+
+```{r, echo=FALSE, warning=FALSE}
+plot(mtcars$am,mtcars$mpg,pch=19,col="blue",xlab="Transmission: 0-Automatic, 1-Manual", ylab="MPG", main = "Fit with \
+Standard LM and Poisson GLM")
+glm1 = glm(mtcars$mpg ~ mtcars$am,family="poisson")
+abline(CR,col="red",lwd=3); lines(mtcars$am,glm1$fitted,col="blue",lwd=3)
+legend("topleft", lty = 1, col = c("blue", "red"), legend = c("Poisson GLM", "Standard LM"))
+```
+
+Running a Poisson GLM did not result in a better fit.  It is the same as with a standard linear model.
+
+###Residuals and Residual Plots
+####Residuals
+
+```{r}
+n <- length(mtcars$mpg)
+e <- resid(CR)
+yhat <- predict(CR)
+max(abs(e -(mtcars$mpg - yhat)))
+max(abs(e - (mtcars$mpg  - coef(CR)[1] - coef(CR)[2] * mtcars$am)))
+```
+
+####Residual Plots
+
+```{r, echo=FALSE, fig.align="center"}
+par(mfrow = c(1,2), mar = c(4,4,6,1), oma = c(0,0,2,0))
+plot(mtcars$am, mtcars$mpg,  
+     xlab = "Transmission", 
+     ylab = "MPG", 
+     bg = "lightblue", 
+     col = "black", cex = 2, pch = 21,frame = FALSE,
+     main = "Residuals")
+abline(CR, lwd = 2)
+for (i in 1 : n) 
+  lines(c(mtcars$am[i], mtcars$am[i]), c(mtcars$mpg [i], yhat[i]), col = "red" , lwd = 2)
+ 
+plot(mtcars$am, e,  
+     xlab = "Transmission", 
+     ylab = "MPG Residuals", 
+     bg = "lightblue", 
+     col = "black", cex = 2, pch = 21,frame = FALSE,
+     main = "Residuals versus X")
+abline(h = 0, lwd = 2)
+for (i in 1 : n) 
+  lines(c(mtcars$am[i], mtcars$am[i]), c(e[i], 0), col = "red" , lwd = 2)
+mtext("Residual Plots1", outer = TRUE)
+```
+
+###Confidence Intervals
+```{r, warning=FALSE}
+confint(CR)
+confint(glm1)
+```
+
+From this, we see that although the fit may not show a difference, the confidence of the Poisson GLM is greater than the standard linear model.
